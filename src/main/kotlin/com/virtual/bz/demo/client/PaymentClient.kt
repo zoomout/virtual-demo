@@ -37,6 +37,7 @@ class PaymentClient(
 
     fun executePayment(orderId: UUID): Result {
         return try {
+            log.info { "ThreadPayment: [${Thread.currentThread()}" }
             client.post()
                 .uri("/payment/execute")
                 .body(mapOf("orderId" to orderId))

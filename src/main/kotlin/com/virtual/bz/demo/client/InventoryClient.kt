@@ -36,6 +36,7 @@ class InventoryClient(
 
     fun executeReservation(itemId: String): Result {
         return try {
+            log.info { "ThreadInventory: [${Thread.currentThread()}" }
             client.post()
                 .uri("/inventory/reserve")
                 .body(mapOf("itemId" to itemId))
