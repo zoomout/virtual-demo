@@ -7,11 +7,14 @@ import com.virtual.bz.demo.service.domain.FailureReason
 import com.virtual.bz.demo.service.domain.Order
 import com.virtual.bz.demo.service.domain.Result.Failure
 import com.virtual.bz.demo.service.domain.Result.Success
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 @Service
 class OrderService(
@@ -23,6 +26,9 @@ class OrderService(
     fun createOrder(itemId: String): Order =
         orderRepositoryService.createOrder(itemId)
 
+    fun getOrder(id: UUID): Order =
+        orderRepositoryService.getOrder(id)
+
     fun processOrder(orderId: UUID): Order {
         val order = orderRepositoryService.markAsProcessing(orderId)
         val paymentId = runBlocking(dispatcher) {
@@ -31,7 +37,6 @@ class OrderService(
 
             val paymentResult = paymentDeferred.await()
             val inventoryResult = inventoryDeferred.await()
-
             when {
                 // 1. Success
                 paymentResult is Success && inventoryResult is Success -> {

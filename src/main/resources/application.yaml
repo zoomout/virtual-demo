@@ -1,18 +1,29 @@
 spring:
+  docker:
+    compose:
+      enabled: false
   application:
     name: virtual-demo
   threads:
     virtual:
       enabled: true
-  datasource:
-    url: jdbc:postgresql://localhost:5432/orders
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    url: jdbc:postgresql://localhost:5432/virtual_demo_db
+    username: user
+    password: password
+
+clients:
+  inventory:
+    url: http://dummy-inventory
+    timeout: 30s
+  payment:
+    url: http://dummy-payment
+    timeout: 30s

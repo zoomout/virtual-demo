@@ -43,8 +43,8 @@ class OrderRepositoryService(
         val order = orderRepository.findById(orderId)
             .orElseThrow { OrderNotFoundException.withId(orderId) }
             .also {
-                if (it.status != OrderStatusEntity.PENDING) {
-                    throw IllegalStateException("Order $orderId is not in ${OrderStatusEntity.PENDING} state (current: ${it.status})")
+                if (it.status != OrderStatusEntity.PROCESSING) {
+                    throw IllegalStateException("Order $orderId is not in ${OrderStatusEntity.PROCESSING} state (current: ${it.status})")
                 }
             }
 
@@ -55,6 +55,11 @@ class OrderRepositoryService(
             )
         ).toDomain()
     }
+
+    fun getOrder(orderId: UUID): Order =
+        orderRepository.findById(orderId)
+            .orElseThrow { OrderNotFoundException.withId(orderId) }
+            .toDomain()
 
     @Transactional
     fun markAsFailed(
