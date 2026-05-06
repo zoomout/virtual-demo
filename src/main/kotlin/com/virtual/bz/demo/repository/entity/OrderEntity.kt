@@ -1,9 +1,7 @@
 package com.virtual.bz.demo.repository.entity
 
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
-import java.util.UUID
+import jakarta.persistence.*
+import java.util.*
 
 @Entity
 @Table(name = "orders")
@@ -12,7 +10,12 @@ data class OrderEntity(
     val id: UUID,
     val paymentId: String? = null,
     val itemId: String,
-    val status: OrderStatusEntity
+    @Enumerated(EnumType.STRING)
+    val status: OrderStatusEntity,
+    @Enumerated(EnumType.STRING)
+    val failureReason: FailureReasonEntity? = null,
+    @Version
+    val version: Long = 0
 )
 
 enum class OrderStatusEntity {
@@ -20,4 +23,10 @@ enum class OrderStatusEntity {
     PROCESSING,
     COMPLETED,
     FAILED,
+}
+
+enum class FailureReasonEntity {
+    PAYMENT_FAILURE,
+    INVENTORY_FAILURE,
+    PAYMENT_AND_INVENTORY_FAILURE,
 }
