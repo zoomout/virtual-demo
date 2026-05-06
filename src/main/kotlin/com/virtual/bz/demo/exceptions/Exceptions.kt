@@ -26,3 +26,18 @@ class OrderNotFoundException private constructor(
             )
     }
 }
+
+class PaymentException(
+    message: String,
+) : OrderException(
+    message = message,
+    title = "Payment exception",
+    type = "payment-exception",
+) {
+    companion object {
+        fun withMessage(message: String) =
+            PaymentException(
+                message = message,
+            )
+    }
+}

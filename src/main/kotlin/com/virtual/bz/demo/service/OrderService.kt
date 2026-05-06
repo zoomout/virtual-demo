@@ -4,6 +4,7 @@ import com.fasterxml.uuid.Generators
 import com.virtual.bz.demo.client.InventoryClient
 import com.virtual.bz.demo.client.PaymentClient
 import com.virtual.bz.demo.exceptions.OrderNotFoundException
+import com.virtual.bz.demo.exceptions.PaymentException
 import com.virtual.bz.demo.repository.OrderJpaRepository
 import com.virtual.bz.demo.repository.entity.OrderEntity
 import com.virtual.bz.demo.repository.entity.OrderStatusEntity
@@ -39,20 +40,38 @@ class OrderService(
             .orElseThrow { OrderNotFoundException.withId(orderId) }
 
         val processingOrder = orderEntity.copy(status = OrderStatusEntity.PROCESSING)
-        orderRepository.save(processingOrder)
+        orderRepository.saveAndFlush(processingOrder)
 
         return runBlocking(dispatcher) {
             val paymentDeferred = async { paymentClient.initiatePayment(processingOrder.id) }
-            val inventoryDeferred = async { inventoryClient.checkInventory(processingOrder.itemId) }
+            val inventoryDeferred = async { inventoryClient.reserveInventory(processingOrder.itemId) }
 
-            val paymentId = paymentDeferred.await()
+            val (paymentResult, paymentId) = paymentDeferred.await()
+            if (!paymentResult) {
+                throw PaymentException.withMessage("Payment failed for orderId=$orderId and paymentId=$paymentId")
+            }
             val inventoryResult = inventoryDeferred.await()
 
-            val completedOrder = orderEntity.copy(
-                paymentId = paymentId,
-                status = OrderStatusEntity.COMPLETED,
-            )
-            orderRepository.save(completedOrder).toDomain()
+            if (inventoryResult < 1) {
+                val rolledBackPayment = async { paymentClient.rollbackPayment(orderId) }
+                val (rollbackResult, paymentId) = rolledBackPayment.await()
+                if (!rollbackResult) {
+                    throw PaymentException.withMessage("Payment rollback failed for orderId=$orderId and paymentId=$paymentId")
+                }
+                return@runBlocking orderRepository.saveAndFlush(
+                    orderEntity.copy(
+                        paymentId = paymentId,
+                        status = OrderStatusEntity.FAILED,
+                    )
+                ).toDomain()
+            }
+
+            orderRepository.saveAndFlush(
+                orderEntity.copy(
+                    paymentId = paymentId,
+                    status = OrderStatusEntity.COMPLETED,
+                )
+            ).toDomain()
         }
     }
 

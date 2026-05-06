@@ -9,9 +9,15 @@ class PaymentClient(restClientBuilder: RestClient.Builder) {
 
     private val client = restClientBuilder.baseUrl("http://payment-api.com").build()
 
-    fun initiatePayment(orderId: UUID): String {
+    fun initiatePayment(orderId: UUID): Pair<Boolean, String> {
         // Mocking a blocking call
         Thread.sleep(100)
-        return "PAY-" + UUID.randomUUID().toString().take(8)
+        return Pair(true, "Pay-" + UUID.randomUUID())
+    }
+
+    fun rollbackPayment(orderId: UUID): Pair<Boolean, String> {
+        // Mocking a blocking call
+        Thread.sleep(100)
+        return Pair(true, "Rollback-" + UUID.randomUUID())
     }
 }
