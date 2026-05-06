@@ -1,5 +1,7 @@
 package com.virtual.bz.demo.client
 
+import com.virtual.bz.demo.exceptions.InventoryApiException
+import com.virtual.bz.demo.exceptions.PaymentApiException
 import com.virtual.bz.demo.service.domain.Result
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -42,22 +44,15 @@ class PaymentClient(
                 .uri("/payment/execute")
                 .body(mapOf("orderId" to orderId))
                 .retrieve()
-                .onStatus({ status -> status.isError }) { _, response ->
-                    log.error { "Error while executing payment, status code: ${response.statusCode}" }
-                    throw RuntimeException("Payment API returned status code: ${response.statusCode}")
-                }
                 .toEntity<PaymentResponse>()
-                .let { response ->
-                    val body = response.body
-                    if (response.statusCode.is2xxSuccessful && body != null) {
-                        Result.Success(body.id)
-                    } else {
-                        Result.Failure
-                    }
+                .let {
+                    Result.Success(
+                        it.body?.id ?: throw PaymentApiException.withMessage("Payment id is null")
+                    )
                 }
         } catch (e: Exception) {
             log.error(e) { "Error while executing payment" }
-            Result.Failure
+            Result.Failure("Unknown error while executing payment")
         }
     }
 
@@ -67,21 +62,15 @@ class PaymentClient(
                 .uri("/payment/rollback")
                 .body(mapOf("paymentId" to paymentId))
                 .retrieve()
-                .onStatus({ status -> status.isError }) { _, response ->
-                    log.error { "Error while rolling back payment, status code: ${response.statusCode}" }
-                }
                 .toEntity<PaymentResponse>()
-                .let { response ->
-                    val body = response.body
-                    if (response.statusCode.is2xxSuccessful && body != null) {
-                        Result.Success(body.id)
-                    } else {
-                        Result.Failure
-                    }
+                .let {
+                    Result.Success(
+                        it.body?.id ?: throw InventoryApiException.withMessage("Payment rollback id is null")
+                    )
                 }
         } catch (e: Exception) {
             log.error(e) { "Error while rolling back payment" }
-            Result.Failure
+            Result.Failure(e.message ?: "Unknown error while rolling back payment")
         }
     }
 }

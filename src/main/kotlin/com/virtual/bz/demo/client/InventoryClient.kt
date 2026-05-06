@@ -1,5 +1,6 @@
 package com.virtual.bz.demo.client
 
+import com.virtual.bz.demo.exceptions.InventoryApiException
 import com.virtual.bz.demo.service.domain.Result
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
@@ -41,22 +42,15 @@ class InventoryClient(
                 .uri("/inventory/reserve")
                 .body(mapOf("itemId" to itemId))
                 .retrieve()
-                .onStatus({ status -> status.isError }) { _, response ->
-                    log.error { "Error while executing inventory reservation, status code: ${response.statusCode}" }
-
-                }
                 .toEntity<InventoryResponse>()
-                .let { response ->
-                    val body = response.body
-                    if (response.statusCode.is2xxSuccessful && body != null) {
-                        Result.Success(body.id)
-                    } else {
-                        Result.Failure
-                    }
+                .let {
+                    Result.Success(
+                        it.body?.id ?: throw InventoryApiException.withMessage("Reservation id is null")
+                    )
                 }
         } catch (e: Exception) {
             log.error(e) { "Error while executing inventory reservation" }
-            Result.Failure
+            Result.Failure("Unknown error while executing inventory reservation")
         }
     }
 
@@ -66,21 +60,15 @@ class InventoryClient(
                 .uri("/inventory/rollback")
                 .body(mapOf("reservationId" to reservationId))
                 .retrieve()
-                .onStatus({ status -> status.isError }) { _, response ->
-                    log.error { "Error while rolling back inventory reservation, status code: ${response.statusCode}" }
-                }
                 .toEntity<InventoryResponse>()
-                .let { response ->
-                    val body = response.body
-                    if (response.statusCode.is2xxSuccessful && body != null) {
-                        Result.Success(body.id)
-                    } else {
-                        Result.Failure
-                    }
+                .let {
+                    Result.Success(
+                        it.body?.id ?: throw InventoryApiException.withMessage("Reservation rollback id is null")
+                    )
                 }
         } catch (e: Exception) {
             log.error(e) { "Error while rolling back inventory reservation" }
-            Result.Failure
+            Result.Failure(e.message ?: "Unknown error while rolling back inventory reservation")
         }
     }
 }

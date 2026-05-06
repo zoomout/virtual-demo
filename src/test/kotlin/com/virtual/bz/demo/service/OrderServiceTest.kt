@@ -62,7 +62,7 @@ class OrderServiceTest {
 
         every { orderRepositoryService.markAsProcessing(orderId) } returns order
         every { paymentClient.executePayment(orderId) } returns Result.Success(paymentId)
-        every { inventoryClient.executeReservation(itemId) } returns Result.Failure
+        every { inventoryClient.executeReservation(itemId) } returns Result.Failure("error")
         every { orderRepositoryService.markAsFailed(orderId, FailureReason.INVENTORY_FAILURE) } returns mockk()
         every { paymentClient.rollbackPayment(paymentId) } returns Result.Success("rollback-1")
 
@@ -85,7 +85,7 @@ class OrderServiceTest {
         val order = Order(id = orderId, itemId = itemId, status = OrderStatus.PENDING)
 
         every { orderRepositoryService.markAsProcessing(orderId) } returns order
-        every { paymentClient.executePayment(orderId) } returns Result.Failure
+        every { paymentClient.executePayment(orderId) } returns Result.Failure("error")
         every { inventoryClient.executeReservation(itemId) } returns Result.Success(reservationId)
         every { orderRepositoryService.markAsFailed(orderId, FailureReason.PAYMENT_FAILURE) } returns mockk()
         every { inventoryClient.rollbackInventory(reservationId) } returns Result.Success("rollback-1")
@@ -108,8 +108,8 @@ class OrderServiceTest {
         val order = Order(id = orderId, itemId = itemId, status = OrderStatus.PENDING)
 
         every { orderRepositoryService.markAsProcessing(orderId) } returns order
-        every { paymentClient.executePayment(orderId) } returns Result.Failure
-        every { inventoryClient.executeReservation(itemId) } returns Result.Failure
+        every { paymentClient.executePayment(orderId) } returns Result.Failure("error")
+        every { inventoryClient.executeReservation(itemId) } returns Result.Failure("error")
         every { orderRepositoryService.markAsFailed(orderId, FailureReason.PAYMENT_AND_INVENTORY_FAILURE) } returns mockk()
 
         assertThrows<OrderProcessingException> {

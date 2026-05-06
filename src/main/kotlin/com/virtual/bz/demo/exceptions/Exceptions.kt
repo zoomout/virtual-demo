@@ -38,3 +38,31 @@ class OrderProcessingException(
             )
     }
 }
+
+class PaymentApiException(
+    message: String,
+) : OrderException(
+    message = message,
+    type = "payment-api-exception",
+) {
+    companion object {
+        fun withMessage(message: String) =
+            PaymentApiException(
+                message = message,
+            )
+    }
+}
+
+class InventoryApiException(
+    message: String,
+) : OrderException(
+    message = message,
+    type = "inventory-api-exception",
+) {
+    companion object {
+        fun withMessage(message: String) =
+            InventoryApiException(
+                message = message,
+            )
+    }
+}
