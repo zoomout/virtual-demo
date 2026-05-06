@@ -4,7 +4,6 @@ import java.util.*
 
 sealed class OrderException(
     message: String,
-    val title: String,
     val type: String,
 ) : RuntimeException(message)
 
@@ -12,7 +11,6 @@ sealed class NotFoundException(
     message: String,
 ) : OrderException(
     message = message,
-    title = "Item not found",
     type = "not-found-exception",
 )
 
@@ -27,16 +25,15 @@ class OrderNotFoundException private constructor(
     }
 }
 
-class PaymentException(
+class OrderProcessingException(
     message: String,
 ) : OrderException(
     message = message,
-    title = "Payment exception",
-    type = "payment-exception",
+    type = "order-processing-exception",
 ) {
     companion object {
         fun withMessage(message: String) =
-            PaymentException(
+            OrderProcessingException(
                 message = message,
             )
     }
