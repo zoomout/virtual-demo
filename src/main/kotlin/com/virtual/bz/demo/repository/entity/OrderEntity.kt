@@ -27,8 +27,7 @@ data class OrderEntity(
     @LastModifiedDate
     @Column(nullable = false)
     var updatedAt: Instant? = null,
-) {
-}
+)
 
 enum class OrderStatusEntity {
     PENDING,
