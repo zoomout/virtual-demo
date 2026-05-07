@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/inventory/reserve"
+  },
+  "response": {
+    "status": 200,
+    "body": "{ \"id\": \"res-123\" }",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "fixedDelayMilliseconds": 100
+  }
+}

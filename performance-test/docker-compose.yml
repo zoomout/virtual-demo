@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: performance-postgres
+    environment:
+      POSTGRES_USER: perfuser
+      POSTGRES_PASSWORD: perfpassword
+      POSTGRES_DB: perfdb
+
+  wiremock:
+    image: wiremock/wiremock:3.12.1
+    container_name: performance-wiremock
+    volumes:
+      - ./wiremock:/home/wiremock
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.11.0
+    container_name: performance-toxiproxy
+    ports:
+      - "8474:8474"   # Toxiproxy Control REST API
+      - "54320:54320" # Proxied Postgres Port
+      - "8081:8081"   # Proxied WireMock Port
+    depends_on:
+      - postgres
+      - wiremock

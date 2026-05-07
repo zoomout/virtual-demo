@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:54320/perfdb
+    username: perfuser
+    password: perfpassword
+
+clients:
+  inventory:
+    url: http://localhost:8081
+  payment:
+    url: http://localhost:8081

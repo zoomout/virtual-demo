@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/payment/execute"
+  },
+  "response": {
+    "status": 200,
+    "body": "{ \"id\": \"pay-123\" }",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "fixedDelayMilliseconds": 150
+  }
+}
