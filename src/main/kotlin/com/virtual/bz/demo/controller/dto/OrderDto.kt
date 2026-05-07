@@ -6,7 +6,7 @@ data class OrderDto(
     val id: UUID,
     val paymentId: String? = null,
     val itemId: String,
-    val status: OrderStatusDto
+    val status: OrderStatusDto,
 )
 
 enum class OrderStatusDto {

@@ -10,7 +10,7 @@ fun Order.toDto(): OrderDto {
         id = this.id,
         paymentId = this.paymentId,
         itemId = this.itemId,
-        status = status.toDto()
+        status = this.status.toDto(),
     )
 }
 
