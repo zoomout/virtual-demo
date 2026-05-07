@@ -34,11 +34,19 @@ class OrderRepositoryTest @Autowired constructor(
         val initialVersion = savedOrder.version
 
         // When
-        val orderToUpdate = savedOrder.copy(status = OrderStatusEntity.PROCESSING)
-        val updatedOrder = orderJpaRepository.save(orderToUpdate)
+        val processingOrder = savedOrder.copy(status = OrderStatusEntity.PROCESSING)
+        val updatedProcessingOrder = orderJpaRepository.save(processingOrder)
         entityManager.flush()
 
         // Then
-        assertEquals(initialVersion + 1, updatedOrder.version)
+        assertEquals(initialVersion + 1, updatedProcessingOrder.version)
+
+        // When
+        val completedOrder = updatedProcessingOrder.copy(status = OrderStatusEntity.COMPLETED)
+        val savedCompletedOrder = orderJpaRepository.save(completedOrder)
+        entityManager.flush()
+
+        // Then
+        assertEquals(initialVersion + 2, savedCompletedOrder.version)
     }
 }
