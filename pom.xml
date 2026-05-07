@@ -27,8 +27,8 @@
         <url/>
     </scm>
     <properties>
-        <java.version>24</java.version>
-        <kotlin.version>2.2.21</kotlin.version>
+        <java.version>25</java.version>
+        <kotlin.version>2.3.21</kotlin.version>
         <uuid-generator.version>5.2.0</uuid-generator.version>
     </properties>
     <dependencies>
