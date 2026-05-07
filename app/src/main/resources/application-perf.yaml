@@ -3,6 +3,9 @@ spring:
     url: jdbc:postgresql://localhost:54320/perfdb
     username: perfuser
     password: perfpassword
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
 
 clients:
   inventory:
