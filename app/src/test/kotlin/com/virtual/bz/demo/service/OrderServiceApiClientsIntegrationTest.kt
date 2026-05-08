@@ -12,7 +12,6 @@ import com.virtual.bz.demo.service.domain.OrderStatus
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.Dispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -38,7 +37,7 @@ class OrderServiceApiClientsIntegrationTest {
 
         paymentClient = PaymentClient(builder, baseUrl, timeout)
         inventoryClient = InventoryClient(builder, baseUrl, timeout)
-        orderService = OrderService(orderRepositoryService, paymentClient, inventoryClient, Dispatchers.IO)
+        orderService = OrderService(orderRepositoryService, paymentClient, inventoryClient)
     }
 
     @Test

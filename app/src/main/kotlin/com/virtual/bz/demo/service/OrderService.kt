@@ -5,14 +5,14 @@ import com.virtual.bz.demo.client.PaymentClient
 import com.virtual.bz.demo.exceptions.OrderProcessingException
 import com.virtual.bz.demo.service.domain.FailureReason
 import com.virtual.bz.demo.service.domain.Order
+import com.virtual.bz.demo.service.domain.Result
 import com.virtual.bz.demo.service.domain.Result.Failure
 import com.virtual.bz.demo.service.domain.Result.Success
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import java.util.*
+import java.util.concurrent.Callable
+import java.util.concurrent.StructuredTaskScope
 
 private val log = KotlinLogging.logger {}
 
@@ -21,7 +21,6 @@ class OrderService(
     private val orderRepositoryService: OrderRepositoryService,
     private val paymentClient: PaymentClient,
     private val inventoryClient: InventoryClient,
-    private val dispatcher: CoroutineDispatcher
 ) {
     fun createOrder(itemId: String): Order =
         orderRepositoryService.createOrder(itemId)
@@ -32,14 +31,13 @@ class OrderService(
     fun processOrder(orderId: UUID): Order {
         val order = orderRepositoryService.markAsProcessing(orderId)
         log.info { "ThreadOrder: [${Thread.currentThread()}" }
-        val paymentId = runBlocking(dispatcher) {
-            log.info { "ThreadOrderCoroutine: [${Thread.currentThread()} | $coroutineContext]" }
-
-            val paymentDeferred = async { paymentClient.executePayment(orderId) }
-            val inventoryDeferred = async { inventoryClient.executeReservation(order.itemId) }
-
-            val paymentResult = paymentDeferred.await()
-            val inventoryResult = inventoryDeferred.await()
+        val paymentId = StructuredTaskScope.open<Result>().use { scope ->
+            log.info { "ThreadOrderCoroutine: [${Thread.currentThread()}" }
+            val paymentDeferred = scope.fork(Callable { paymentClient.executePayment(orderId) })
+            val inventoryDeferred = scope.fork(Callable { inventoryClient.executeReservation(order.itemId) })
+            scope.join()
+            val paymentResult = paymentDeferred.get()
+            val inventoryResult = inventoryDeferred.get()
             when {
                 // 1. Success
                 paymentResult is Success && inventoryResult is Success -> {
@@ -66,7 +64,6 @@ class OrderService(
                     throw OrderProcessingException.withMessage("Payment and Inventory failed for orderId=$orderId")
                 }
             }
-
         }
         return orderRepositoryService.markAsComplete(orderId, paymentId)
     }
