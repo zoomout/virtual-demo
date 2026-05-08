@@ -10,6 +10,7 @@ import com.virtual.bz.demo.service.domain.Result
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -20,11 +21,13 @@ class OrderServiceTest {
     private val orderRepositoryService = mockk<OrderRepositoryService>()
     private val paymentClient = mockk<PaymentClient>()
     private val inventoryClient = mockk<InventoryClient>()
+    private val dispatcher = Dispatchers.Unconfined
 
     private val orderService = OrderService(
         orderRepositoryService,
         paymentClient,
         inventoryClient,
+        dispatcher
     )
 
     @Test
@@ -107,12 +110,7 @@ class OrderServiceTest {
         every { orderRepositoryService.markAsProcessing(orderId) } returns order
         every { paymentClient.executePayment(orderId) } returns Result.Failure("error")
         every { inventoryClient.executeReservation(itemId) } returns Result.Failure("error")
-        every {
-            orderRepositoryService.markAsFailed(
-                orderId,
-                FailureReason.PAYMENT_AND_INVENTORY_FAILURE
-            )
-        } returns mockk()
+        every { orderRepositoryService.markAsFailed(orderId, FailureReason.PAYMENT_AND_INVENTORY_FAILURE) } returns mockk()
 
         assertThrows<OrderProcessingException> {
             orderService.processOrder(orderId)
