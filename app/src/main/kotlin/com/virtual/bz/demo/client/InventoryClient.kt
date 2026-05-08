@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.toEntity
 import java.net.http.HttpClient
 import java.time.Duration
+import kotlin.coroutines.cancellation.CancellationException
 
 private val log = KotlinLogging.logger {}
 
@@ -48,9 +49,11 @@ class InventoryClient(
                         it.body?.id ?: throw InventoryApiException.withMessage("Reservation id is null")
                     )
                 }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log.error(e) { "Error while executing inventory reservation" }
-            Result.Failure("Unknown error while executing inventory reservation")
+            Result.Failure(e.message ?: "Unknown error while executing inventory reservation")
         }
     }
 
@@ -66,6 +69,8 @@ class InventoryClient(
                         it.body?.id ?: throw InventoryApiException.withMessage("Reservation rollback id is null")
                     )
                 }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log.error(e) { "Error while rolling back inventory reservation" }
             Result.Failure(e.message ?: "Unknown error while rolling back inventory reservation")

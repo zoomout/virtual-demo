@@ -12,6 +12,7 @@ import org.springframework.web.client.toEntity
 import java.net.http.HttpClient
 import java.time.Duration
 import java.util.*
+import kotlin.coroutines.cancellation.CancellationException
 
 private val log = KotlinLogging.logger {}
 
@@ -50,9 +51,11 @@ class PaymentClient(
                         it.body?.id ?: throw PaymentApiException.withMessage("Payment id is null")
                     )
                 }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log.error(e) { "Error while executing payment" }
-            Result.Failure("Unknown error while executing payment")
+            Result.Failure(e.message ?: "Unknown error while executing  payment")
         }
     }
 
@@ -68,6 +71,8 @@ class PaymentClient(
                         it.body?.id ?: throw InventoryApiException.withMessage("Payment rollback id is null")
                     )
                 }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log.error(e) { "Error while rolling back payment" }
             Result.Failure(e.message ?: "Unknown error while rolling back payment")
