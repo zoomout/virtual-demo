@@ -12,6 +12,7 @@ import org.springframework.web.client.toEntity
 import java.net.http.HttpClient
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.Executors
 import kotlin.coroutines.cancellation.CancellationException
 
 private val log = KotlinLogging.logger {}
@@ -30,6 +31,7 @@ class PaymentClient(
                 HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_1_1)
                     .connectTimeout(timeout)
+                    .executor(Executors.newVirtualThreadPerTaskExecutor())
                     .build()
             ).apply {
                 setReadTimeout(timeout)
@@ -40,7 +42,6 @@ class PaymentClient(
 
     fun executePayment(orderId: UUID): Result {
         return try {
-            log.info { "ThreadPayment: [${Thread.currentThread()}" }
             client.post()
                 .uri("/payment/execute")
                 .body(mapOf("orderId" to orderId))

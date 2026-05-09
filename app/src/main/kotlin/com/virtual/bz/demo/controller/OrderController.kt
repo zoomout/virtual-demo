@@ -22,7 +22,6 @@ class OrderController(private val orderService: OrderService) {
 
     @PostMapping("/{id}/process")
     fun processOrder(@PathVariable id: UUID): OrderDto {
-        log.info { "ThreadController: [${Thread.currentThread()}" }
         return orderService.processOrder(id).toDto()
     }
 

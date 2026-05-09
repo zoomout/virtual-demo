@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClient
 import java.util.concurrent.Executors
 
 @Configuration
-class VirtualThreadConfig {
+class ApplicationConfig {
 
     @Bean
     fun restClientBuilder(): RestClient.Builder {

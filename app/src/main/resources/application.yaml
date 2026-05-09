@@ -11,6 +11,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+    open-in-view: false
     show-sql: false
     properties:
       hibernate:
@@ -19,7 +20,9 @@ spring:
     url: jdbc:postgresql://localhost:5432/virtual_demo_db
     username: user
     password: password
-
+    hikari:
+      maximum-pool-size: 200
+      minimum-idle: 100
 clients:
   inventory:
     url: http://dummy-inventory

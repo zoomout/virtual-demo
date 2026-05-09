@@ -31,9 +31,7 @@ class OrderService(
 
     fun processOrder(orderId: UUID): Order {
         val order = orderRepositoryService.markAsProcessing(orderId)
-        log.info { "ThreadOrder: [${Thread.currentThread()}" }
         val paymentId = runBlocking(dispatcher) {
-            log.info { "ThreadOrderCoroutine: [${Thread.currentThread()} | $coroutineContext]" }
 
             val paymentDeferred = async { paymentClient.executePayment(orderId) }
             val inventoryDeferred = async { inventoryClient.executeReservation(order.itemId) }

@@ -4,8 +4,8 @@ spring:
     username: perfuser
     password: perfpassword
     hikari:
-      maximum-pool-size: 50
-      minimum-idle: 10
+      maximum-pool-size: 200
+      minimum-idle: 100
 
 clients:
   inventory:

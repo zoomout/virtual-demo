@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient
 import org.springframework.web.client.toEntity
 import java.net.http.HttpClient
 import java.time.Duration
+import java.util.concurrent.Executors
 import kotlin.coroutines.cancellation.CancellationException
 
 private val log = KotlinLogging.logger {}
@@ -28,6 +29,7 @@ class InventoryClient(
                 HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_1_1)
                     .connectTimeout(timeout)
+                    .executor(Executors.newVirtualThreadPerTaskExecutor())
                     .build()
             ).apply {
                 setReadTimeout(timeout)
@@ -38,7 +40,6 @@ class InventoryClient(
 
     fun executeReservation(itemId: String): Result {
         return try {
-            log.info { "ThreadInventory: [${Thread.currentThread()}" }
             client.post()
                 .uri("/inventory/reserve")
                 .body(mapOf("itemId" to itemId))

@@ -17,6 +17,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        highlight_sql: true
+    show-sql: true
 
 clients:
   inventory:
