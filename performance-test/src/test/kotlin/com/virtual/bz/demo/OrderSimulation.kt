@@ -37,10 +37,10 @@ class OrderSimulation : Simulation() {
     init {
         setUp(
             scn.injectOpen(
-                nothingFor(2),                        // Warm up
-                atOnceUsers(10),                             // Initial spike
-                rampUsers(1000).during(60),            // Ramp up to 1,000 users over 1 min
-                constantUsersPerSec(100.0).during(60)  // Sustained load: 100 req/sec for 1 min
+                nothingFor(2),
+                atOnceUsers(50),
+                rampUsers(2000).during(60),
+                constantUsersPerSec(500.0).during(60)
             )
         ).protocols(httpProtocol)
     }
