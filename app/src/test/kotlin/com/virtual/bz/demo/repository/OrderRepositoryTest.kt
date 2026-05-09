@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import java.time.Instant
-import java.util.*
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -32,7 +31,6 @@ class OrderRepositoryTest @Autowired constructor(
         val fixedInstant = Instant.parse("2024-05-07T10:00:00Z")
 
         val order = OrderEntity(
-            id = UUID.randomUUID(),
             itemId = "item-123",
             status = OrderStatusEntity.PENDING
         )
@@ -42,7 +40,7 @@ class OrderRepositoryTest @Autowired constructor(
         orderJpaRepository.save(order)
         entityManager.flush()
         entityManager.clear()
-        val reloadedOrder = orderJpaRepository.findById(order.id).get()
+        val reloadedOrder = orderJpaRepository.findById(order.id!!).get()
 
 
         // Then
@@ -53,11 +51,11 @@ class OrderRepositoryTest @Autowired constructor(
         TestTimeData.time = advancedInstant
 
         // When
-        val processingOrder = reloadedOrder.copy(status = OrderStatusEntity.PROCESSING)
-        orderJpaRepository.save(processingOrder)
+        reloadedOrder.status = OrderStatusEntity.PROCESSING
+        orderJpaRepository.save(reloadedOrder)
         entityManager.flush()
         entityManager.clear()
-        val reloadedUpdatedOrder = orderJpaRepository.findById(order.id).get()
+        val reloadedUpdatedOrder = orderJpaRepository.findById(order.id!!).get()
 
         // Then
         assertEquals(fixedInstant, reloadedUpdatedOrder.createdAt, "createdAt should remain unchanged")
@@ -68,7 +66,6 @@ class OrderRepositoryTest @Autowired constructor(
     fun `should increment version when entity is updated`() {
         // Given
         val order = OrderEntity(
-            id = UUID.randomUUID(),
             itemId = "item-123",
             status = OrderStatusEntity.PENDING
         )
@@ -77,19 +74,105 @@ class OrderRepositoryTest @Autowired constructor(
         val initialVersion = savedOrder.version
 
         // When
-        val processingOrder = savedOrder.copy(status = OrderStatusEntity.PROCESSING)
-        val updatedProcessingOrder = orderJpaRepository.save(processingOrder)
+        savedOrder.status = OrderStatusEntity.PROCESSING
+        val updatedProcessingOrder = orderJpaRepository.save(savedOrder)
         entityManager.flush()
 
         // Then
         assertEquals(initialVersion + 1, updatedProcessingOrder.version)
 
         // When
-        val completedOrder = updatedProcessingOrder.copy(status = OrderStatusEntity.COMPLETED)
-        val savedCompletedOrder = orderJpaRepository.save(completedOrder)
+        updatedProcessingOrder.status = OrderStatusEntity.COMPLETED
+        val savedCompletedOrder = orderJpaRepository.save(updatedProcessingOrder)
         entityManager.flush()
 
         // Then
         assertEquals(initialVersion + 2, savedCompletedOrder.version)
+    }
+
+    @Test
+    fun `should mark as processing using native query and return the updated entity`() {
+        // Given
+        val order = OrderEntity(
+            itemId = "item-123",
+            status = OrderStatusEntity.PENDING
+        )
+        val savedOrder = orderJpaRepository.save(order)
+        entityManager.flush()
+        entityManager.clear()
+
+        // When
+        val updatedOrder = orderJpaRepository.markAsProcessing(savedOrder.id!!)
+
+        // Then
+        assertEquals(OrderStatusEntity.PROCESSING, updatedOrder?.status)
+        assertEquals(savedOrder.version + 1, updatedOrder?.version)
+
+        // Verify it was actually updated in DB
+        entityManager.clear()
+        val reloadedOrder = orderJpaRepository.findById(savedOrder.id!!).get()
+        assertEquals(OrderStatusEntity.PROCESSING, reloadedOrder.status)
+    }
+
+    @Test
+    fun `should return null when marking as processing if status is not pending`() {
+        // Given
+        val order = OrderEntity(
+            itemId = "item-123",
+            status = OrderStatusEntity.COMPLETED
+        )
+        val savedOrder = orderJpaRepository.save(order)
+        entityManager.flush()
+        entityManager.clear()
+
+        // When
+        val updatedOrder = orderJpaRepository.markAsProcessing(savedOrder.id!!)
+
+        // Then
+        assertEquals(null, updatedOrder)
+    }
+
+    @Test
+    fun `should mark as completed using native query`() {
+        // Given
+        val order = OrderEntity(
+            itemId = "item-123",
+            status = OrderStatusEntity.PROCESSING
+        )
+        val savedOrder = orderJpaRepository.save(order)
+        entityManager.flush()
+        entityManager.clear()
+
+        // When
+        val updatedOrder = orderJpaRepository.markAsCompleted(savedOrder.id!!, "pay-123")
+
+        // Then
+        assertEquals(OrderStatusEntity.COMPLETED, updatedOrder?.status)
+        assertEquals("pay-123", updatedOrder?.paymentId)
+        assertEquals(savedOrder.version + 1, updatedOrder?.version)
+    }
+
+    @Test
+    fun `should mark as failed using native query`() {
+        // Given
+        val order = OrderEntity(
+            itemId = "item-123",
+            status = OrderStatusEntity.PENDING
+        )
+        val savedOrder = orderJpaRepository.save(order)
+        entityManager.flush()
+        entityManager.clear()
+
+        // When
+        val updatedOrder = orderJpaRepository.markAsFailed(
+            savedOrder.id!!,
+            "PAYMENT_FAILURE",
+            "pay-failed-123"
+        )
+
+        // Then
+        assertEquals(OrderStatusEntity.FAILED, updatedOrder?.status)
+        assertEquals("PAYMENT_FAILURE", updatedOrder?.failureReason?.name)
+        assertEquals("pay-failed-123", updatedOrder?.paymentId)
     }
 }

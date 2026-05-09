@@ -42,7 +42,7 @@ class OrderServiceTest {
         every { orderRepositoryService.markAsProcessing(orderId) } returns order
         every { paymentClient.executePayment(orderId) } returns Result.Success(paymentId)
         every { inventoryClient.executeReservation(itemId) } returns Result.Success(reservationId)
-        every { orderRepositoryService.markAsComplete(orderId, paymentId) } returns completedOrder
+        every { orderRepositoryService.markAsCompleted(orderId, paymentId) } returns completedOrder
 
         val result = orderService.processOrder(orderId)
 
@@ -50,7 +50,7 @@ class OrderServiceTest {
         verify { orderRepositoryService.markAsProcessing(orderId) }
         verify { paymentClient.executePayment(orderId) }
         verify { inventoryClient.executeReservation(itemId) }
-        verify { orderRepositoryService.markAsComplete(orderId, paymentId) }
+        verify { orderRepositoryService.markAsCompleted(orderId, paymentId) }
     }
 
     @Test

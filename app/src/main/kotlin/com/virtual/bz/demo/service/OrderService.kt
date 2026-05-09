@@ -66,7 +66,7 @@ class OrderService(
             }
 
         }
-        return orderRepositoryService.markAsComplete(orderId, paymentId)
+        return orderRepositoryService.markAsCompleted(orderId, paymentId)
     }
 
 }

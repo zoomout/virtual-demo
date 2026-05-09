@@ -20,7 +20,6 @@ class OrderRepositoryService(
 
     fun createOrder(itemId: String): Order = orderRepository.save(
         OrderEntity(
-            id = Generators.timeBasedEpochGenerator().generate(),
             itemId = itemId,
             status = OrderStatusEntity.PENDING,
         )
@@ -28,33 +27,23 @@ class OrderRepositoryService(
 
     @Transactional
     fun markAsProcessing(orderId: UUID): Order =
-        orderRepository.findById(orderId)
-            .orElseThrow { OrderNotFoundException.withId(orderId) }
-            .also {
-                if (it.status != OrderStatusEntity.PENDING) {
-                    throw IllegalStateException("Order $orderId is not in ${OrderStatusEntity.PENDING} state (current: ${it.status})")
-                }
+        orderRepository.markAsProcessing(orderId)
+            ?.toDomain()
+            ?: run {
+                val order = orderRepository.findById(orderId)
+                    .orElseThrow { OrderNotFoundException.withId(orderId) }
+                throw IllegalStateException("Order $orderId is not in ${OrderStatusEntity.PENDING} state (current: ${order.status})")
             }
-            .let { orderRepository.save(it.copy(status = OrderStatusEntity.PROCESSING)) }
-            .toDomain()
 
     @Transactional
-    fun markAsComplete(orderId: UUID, paymentId: String): Order {
-        val order = orderRepository.findById(orderId)
-            .orElseThrow { OrderNotFoundException.withId(orderId) }
-            .also {
-                if (it.status != OrderStatusEntity.PROCESSING) {
-                    throw IllegalStateException("Order $orderId is not in ${OrderStatusEntity.PROCESSING} state (current: ${it.status})")
-                }
+    fun markAsCompleted(orderId: UUID, paymentId: String): Order =
+        orderRepository.markAsCompleted(orderId, paymentId)
+            ?.toDomain()
+            ?: run {
+                val order = orderRepository.findById(orderId)
+                    .orElseThrow { OrderNotFoundException.withId(orderId) }
+                throw IllegalStateException("Order $orderId is not in ${OrderStatusEntity.PROCESSING} state (current: ${order.status})")
             }
-
-        return orderRepository.save(
-            order.copy(
-                paymentId = paymentId,
-                status = OrderStatusEntity.COMPLETED
-            )
-        ).toDomain()
-    }
 
     fun getOrder(orderId: UUID): Order =
         orderRepository.findById(orderId)
@@ -66,17 +55,9 @@ class OrderRepositoryService(
         orderId: UUID,
         failureReason: FailureReason,
         paymentId: String? = null,
-    ): Order {
-        val order = orderRepository.findById(orderId)
-            .orElseThrow { OrderNotFoundException.withId(orderId) }
-
-        return orderRepository.save(
-            order.copy(
-                paymentId = paymentId,
-                status = OrderStatusEntity.FAILED,
-                failureReason = failureReason.toEntity()
-            )
-        ).toDomain()
-    }
+    ): Order =
+        orderRepository.markAsFailed(orderId, failureReason.toEntity().name, paymentId)
+            ?.toDomain()
+            ?: throw OrderNotFoundException.withId(orderId)
 
 }

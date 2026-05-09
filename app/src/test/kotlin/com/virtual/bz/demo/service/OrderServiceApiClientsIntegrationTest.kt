@@ -49,7 +49,7 @@ class OrderServiceApiClientsIntegrationTest {
         val order = Order(id = orderId, itemId = itemId, status = OrderStatus.PENDING)
         every { orderRepositoryService.markAsProcessing(orderId) } returns order
         every {
-            orderRepositoryService.markAsComplete(
+            orderRepositoryService.markAsCompleted(
                 orderId,
                 paymentId
             )
@@ -84,7 +84,7 @@ class OrderServiceApiClientsIntegrationTest {
 
         verify(postRequestedFor(urlEqualTo("/payment/execute")))
         verify(postRequestedFor(urlEqualTo("/inventory/reserve")))
-        verify(exactly = 1) { orderRepositoryService.markAsComplete(orderId, paymentId) }
+        verify(exactly = 1) { orderRepositoryService.markAsCompleted(orderId, paymentId) }
     }
 
     @Test

@@ -9,7 +9,7 @@ import com.virtual.bz.demo.service.domain.OrderStatus
 
 fun OrderEntity.toDomain(): Order {
     return Order(
-        id = this.id,
+        id = this.id!!,
         paymentId = this.paymentId,
         itemId = this.itemId,
         status = status.toDomain(),
