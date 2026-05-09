@@ -32,6 +32,7 @@ Start Docker containers and configure Toxiproxy:
 Run the app in the `perf` profile (connects to proxied services):
 
 ```bash
+./mvnw clean compile -pl app
 ./mvnw spring-boot:run -pl app -Dspring-boot.run.profiles=perf
 ```
 

@@ -94,6 +94,7 @@
                             <arguments>
                                 <argument>compose</argument>
                                 <argument>down</argument>
+                                <argument>-v</argument>
                             </arguments>
                         </configuration>
                     </execution>

@@ -6,6 +6,18 @@ spring:
     hikari:
       maximum-pool-size: 200
       minimum-idle: 100
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    url: jdbc:postgresql://localhost:54320/perfdb
+    user: perfuser
+    password: perfpassword
+
+logging:
+  level:
+    org.flywaydb: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 clients:
   inventory:

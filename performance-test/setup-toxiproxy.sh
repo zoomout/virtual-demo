@@ -24,8 +24,8 @@ echo "Postgres proxy created on port 54320"
             "name": "latency",
             "type": "latency",
             "attributes": {
-              "latency": 2,
-              "jitter": 1
+              "latency": 20,
+              "jitter": 5
             }
           }'
 
